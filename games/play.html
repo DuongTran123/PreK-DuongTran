@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="vi"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Game</title><link rel="stylesheet" href="../shared/style.css">
+<style>
+.row{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;margin:12px 0}
+.opt{background:var(--card);color:var(--ink);box-shadow:0 4px 0 var(--line);border-radius:20px;padding:12px;min-width:110px;font-size:clamp(40px,8vw,90px)}
+.pic{font-size:clamp(50px,10vw,100px);min-width:110px}
+.g3{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.mc{height:clamp(90px,20vh,150px);font-size:clamp(36px,7vw,70px);background:var(--bg);color:var(--ink);box-shadow:0 4px 0 var(--line)}
+.mc .f{display:none}.mc.up .f{display:inline}.mc.up .b{display:none}
+.basket{border:4px dashed var(--a);border-radius:22px;padding:10px;min-width:150px;flex:1;text-align:center;cursor:pointer;font-size:clamp(18px,3vw,30px);min-height:140px}
+.no{background:var(--card)!important;color:var(--ink)!important;animation:sh .4s}
+</style></head>
+<body>
+<div id="top"><b id="ttl"></b><div style="flex:1"></div><span id="stars">⭐ 0</span></div>
+<div id="stage"></div>
+<div id="nav"><button class="ghost" onclick="location.href='index.html'">🏠</button><button class="ghost" onclick="start()">🔁</button></div>
+<script>
+const q=new URLSearchParams(location.search),G=q.get("g")||"memory",TN=q.get("t")||"feelings";
+const $=s=>document.querySelector(s);let stars=0,cur="";
+const sh=a=>{a=[...a];for(let k=a.length;k-->1;){const j=Math.random()*(k+1)|0;[a[k],a[j]]=[a[j],a[k]]}return a};
+const say=t=>{if(!window.speechSynthesis)return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang="en-US";u.rate=.8;speechSynthesis.speak(u)};
+const pic=(it,h=120)=>it.img?`<img src="${it.img}" alt="" style="height:${h}px;max-width:100%;object-fit:contain;border-radius:16px" onerror="this.outerHTML='${it.e||""}'">`:(it.e||"");
+const S=h=>{$("#stage").innerHTML=`<div class="card">${h}</div>`};
+const win=m=>{stars++;$("#stars").textContent="⭐ "+stars;say(m||"Great job!")};
+const end=()=>{S(`<div class="emo">🎉</div><h2>Well done!</h2><button onclick="start()">▶ Chơi lại</button>`);say("Well done!")};
+const all=document.querySelectorAll.bind(document);
+const GAMES={
+memory(){const its=sh(TOPIC.items).slice(0,6);let first=null,lock=false,left=its.length;
+ S(`<div class="tag">Memory</div><div class="g3">${sh([...its,...its]).map(it=>`<button class="mc" data-w="${it.w}"><span class="f">${pic(it,90)}</span><span class="b">❓</span></button>`).join("")}</div>`);
+ all(".mc").forEach(b=>b.onclick=()=>{if(lock||b.classList.contains("up"))return;b.classList.add("up");
+  if(!first){first=b;return}
+  if(first.dataset.w===b.dataset.w){say(b.dataset.w);first.classList.add("ok");b.classList.add("ok");first=null;if(!--left){win();setTimeout(end,1500)}}
+  else{lock=true;const a=first;first=null;setTimeout(()=>{a.classList.remove("up");b.classList.remove("up");lock=false},900)}})},
+missing(){let r=0;(function round(){if(r++>=5)return end();
+ const four=sh(TOPIC.items).slice(0,4),miss=four[Math.random()*4|0],rest=TOPIC.items.filter(x=>!four.includes(x)),
+ opts=sh([miss,...sh(rest.length>1?rest:four.filter(x=>x!==miss)).slice(0,2)]);
+ S(`<div class="tag">What’s missing?</div><div class="row" id="rw">${four.map(it=>`<div class="pic" data-w="${it.w}">${pic(it,110)}</div>`).join("")}</div><h2 id="q">Look!</h2><div class="row" id="op"></div>`);
+ four.forEach((it,k)=>setTimeout(()=>say(it.w),k*1000));
+ setTimeout(()=>{const slot=$("#rw").querySelector(`[data-w="${miss.w}"]`);slot.innerHTML="❓";$("#q").textContent="What’s missing?";say("What is missing?");
+  $("#op").innerHTML=opts.map(it=>`<button class="opt" data-w="${it.w}">${pic(it,90)}</button>`).join("");
+  all(".opt").forEach(b=>b.onclick=()=>{if(b.dataset.w===miss.w){b.classList.add("ok");slot.innerHTML=pic(miss,110);win(miss.w+"! Great job!");setTimeout(round,1800)}
+   else{b.classList.add("no");say("Try again");setTimeout(()=>b.classList.remove("no"),500)}})},4600)})()},
+tap(){let r=0;(function round(){if(r++>=8)return end();const set=sh(TOPIC.items).slice(0,3),t=set[Math.random()*3|0];
+ S(`<div class="tag">Tap the picture</div><h2>Where is “${t.w}”?</h2><div class="row">${set.map(it=>`<button class="opt" data-w="${it.w}">${pic(it,140)}</button>`).join("")}</div><button class="ghost" onclick="say('${t.w}')">🔊</button>`);
+ say("Where is "+t.w+"?");
+ all(".opt").forEach(b=>b.onclick=()=>{if(b.dataset.w===t.w){b.classList.add("ok");win(t.w+"! Great!");setTimeout(round,1500)}else{b.classList.add("no");say(t.w);setTimeout(()=>b.classList.remove("no"),500)}})})()},
+sort(){const gs=TOPIC.groups,its=sh(gs.flatMap((g,gi)=>g[1].map(w=>({...TOPIC.items.find(x=>x.w===w),gi}))));let sel=null,left=its.length;
+ S(`<div class="tag">Sort it!</div><h2>Tap a picture, then a basket</h2><div class="row">${its.map((it,k)=>`<button class="opt" id="i${k}">${pic(it,90)}</button>`).join("")}</div><div class="row">${gs.map((g,gi)=>`<div class="basket" data-g="${gi}"><b>${g[0]}</b><div class="row" id="b${gi}"></div></div>`).join("")}</div>`);
+ its.forEach((it,k)=>$("#i"+k).onclick=()=>{all(".sel").forEach(x=>x.classList.remove("sel"));sel=k;$("#i"+k).classList.add("sel");say(it.w)});
+ all(".basket").forEach(b=>b.onclick=()=>{if(sel===null)return;const it=its[sel],el=$("#i"+sel);
+  if(it.gi==+b.dataset.g){$("#b"+it.gi).appendChild(el);el.disabled=true;el.classList.remove("sel");sel=null;win(it.w+"!");if(!--left)setTimeout(end,1500)}
+  else{b.classList.add("no");say("Try again");setTimeout(()=>b.classList.remove("no"),500)}})},
+flash(){let k=0;const L=sh(TOPIC.items);const show=()=>{const it=L[k];cur=it.w+". "+(it.act||"");
+ S(`<div class="tag">Flashcard ${k+1}/${L.length}</div><div class="emo" onclick="say('${it.w}')">${pic(it,200)}</div><div class="word">${it.w}</div><h2>${it.act||""}</h2><div class="row"><button class="ghost" id="pv">◀</button><button class="ghost" onclick="say(cur)">🔊</button><button id="nx">▶</button></div>`);
+ say(cur);$("#pv").onclick=()=>{k=(k+L.length-1)%L.length;show()};$("#nx").onclick=()=>{if(k===L.length-1){win();end()}else{k++;show()}}};show()}};
+const NAMES={memory:"Lật thẻ",missing:"What’s missing?",tap:"Chạm đúng hình",sort:"Phân loại",flash:"Flashcard"};
+function start(){(GAMES[G]||GAMES.memory)()}
+const sc=document.createElement("script");sc.src=`topics/${TN}.js`;
+sc.onload=()=>{$("#ttl").textContent=TOPIC.name+" · "+(NAMES[G]||"");document.title=$("#ttl").textContent;start()};
+sc.onerror=()=>S(`<h2>Không tìm thấy topics/${TN}.js</h2>`);document.head.appendChild(sc);
+</script></body></html>

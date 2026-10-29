@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="vi"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Slide giảng dạy</title><link rel="stylesheet" href="shared/style.css">
+<style>body{display:block;overflow:auto;padding:16px}main{max-width:900px;margin:auto}
+details{background:var(--card);border-radius:18px;box-shadow:0 4px 0 var(--line);margin:10px 0;padding:10px 16px}
+summary{font-size:clamp(18px,2.6vw,26px);font-weight:700;cursor:pointer}
+.days{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+.days a,.days span{padding:8px 18px;border-radius:14px;font-size:clamp(15px,2vw,20px);text-decoration:none}
+.days a{background:var(--b);color:#fff}.days span{background:var(--line);color:var(--mut)}</style></head>
+<body><main><h1>🎓 Slide giảng dạy</h1><p><a href="games/index.html">🎮 Game bổ trợ (lật thẻ, chạm hình, phân loại…)</a></p><p id="sum" class="sub"></p><div id="m"></div></main>
+<script src="course.js"></script>
+<script>
+let tot=0,ok=0;
+document.getElementById("m").innerHTML=COURSE.map(([u,name,n])=>{
+ let h="";for(let k=1;k<=n;k++){const p=`gokids1/${u}/day${k}`;tot++;
+  if(DONE.includes(p)){ok++;h+=`<a href="${p}/">Day ${k}</a>`}else h+=`<span>Day ${k}</span>`}
+ return `<details><summary>${name}</summary><div class="days">${h}</div></details>`}).join("");
+document.getElementById("sum").textContent=`Đã có ${ok}/${tot} bài`;
+</script></body></html>

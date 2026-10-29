@@ -1,0 +1,2 @@
+/* Thêm chủ đề mới: ["tên-file-không-đuôi","Tên hiển thị"] */
+const TOPIC_LIST=[["feelings", "Feelings"], ["body", "Body"], ["myfamily", "My Family"], ["color", "Color"], ["myclassroom", "My Classroom"], ["mytoys", "My Toys"], ["animals", "Animals"], ["weather", "Weather"], ["myhome", "My Home"], ["clothes", "Clothes"], ["foodanddrink", "Food and Drink"], ["dailyroutine", "Daily Routine"], ["senses", "Senses"], ["nature", "Nature"], ["playground", "Playground"], ["helpinghome", "Helping at Home"], ["jobs", "Jobs"], ["places", "Places"]];
